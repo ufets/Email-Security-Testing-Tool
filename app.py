@@ -49,4 +49,4 @@ if __name__ == "__main__":
     mass_email_dispatch(configs, target_content, target_payload, recipients)
 
     # Запуск FastAPI сервера
-    uvicorn.run(app, host="0.0.0.0", port=configs["PORT"])
+    uvicorn.run(app, host="0.0.0.0", port=int(configs["PORT"]))

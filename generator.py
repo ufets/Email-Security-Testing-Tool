@@ -27,11 +27,8 @@ def compile_and_run_cpp(domain_name, port, user_id, cpp_template_path, output_ex
         #os.remove(temp_cpp_file) # Удаляем временный файл
         return None
 
-    # Запуск скомпилированного файла
-    run_process = subprocess.run([output_executable_path], capture_output=True, text=True)
+    os.remove(temp_cpp_file) # Удаляем временный файл
 
-    #os.remove(temp_cpp_file) # Удаляем временный файл
-    return run_process.stdout, run_process.stderr, run_process.returncode
     
 def generate_payloads(domain_name, port, recipient, target_payload):
     if target_payload.name == "executable_file_runned":
