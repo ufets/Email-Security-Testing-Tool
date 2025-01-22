@@ -1,0 +1,9 @@
+{
+    "T1566.001_exe": [
+        {
+          "name": "executable_file_runned",
+          "template": "./templates/exe/simple.cpp", 
+          "attachment_path": "payloads/T1566_001/update.exe"
+        }
+    ]
+}
