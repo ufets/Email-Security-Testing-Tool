@@ -49,8 +49,38 @@ def prepare_lnk(domain_name, port, user_id, output_lnk_path):
     shortcut.save()
 
 
-def prepare_html():
-    return
+def prepare_html(domain_name, port, user_id, template_html_path, output_html_path):
+    """
+    Reads an HTML template, replaces placeholders DOMAIN_NAME, PORT, USER_ID
+    with the specified values, and saves the modified content to a new file.
+
+    Args:
+        domain_name (str): The domain name to replace DOMAIN_NAME.
+        port (str): The port to replace PORT.
+        user_id (str): The user ID to replace USER_ID.
+        template_html_path (str): Path to the input HTML template.
+        output_html_path (str): Path to save the modified HTML file.
+    """
+    try:
+        # Read the template HTML file
+        with open(template_html_path, 'r', encoding='utf-8') as template_file:
+            html_content = template_file.read()
+
+        # Replace placeholders with the provided values
+        html_content = html_content.replace("DOMAIN_NAME", domain_name)
+        html_content = html_content.replace("PORT", str(port))
+        html_content = html_content.replace("USER_ID", str(user_id))
+
+        # Write the modified content to the output file
+        with open(output_html_path, 'w', encoding='utf-8') as output_file:
+            output_file.write(html_content)
+
+        print(f"HTML file successfully created at {output_html_path}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
 
 def generate_payloads(domain_name, port, recipient, target_payload):
     if target_payload.name == "executable_file_runned":
@@ -59,12 +89,14 @@ def generate_payloads(domain_name, port, recipient, target_payload):
         compile_cpp(domain_name, port, recipient.id, target_payload.template, target_payload.attachment_path)
         
         log(f"Compilation successful...", "INFO")
-        # print(f"stdout:\n{stdout}")
-        # print(f"stderr:\n{stderr}")
-        # print(f"Return Code: {return_code}")
+
     elif target_payload.name == "lnk_file_runned":
         log(f"Using template {target_payload.template}", "INFO")
-        str = ""
         prepare_lnk(domain_name, port, recipient.id, target_payload.attachment_path)
+
+    elif target_payload.name == "phishing_html_submit":
+        log(f"Using template {target_payload.template}", "INFO")
+        prepare_html(domain_name, port, recipient.id, target_payload.template, target_payload.attachment_path)
+
     else:
         return

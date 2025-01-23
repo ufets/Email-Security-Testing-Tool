@@ -42,7 +42,7 @@ if __name__ == "__main__":
     log(f"Configurations loaded.", "INFO")
     
 
-    target_payload = find_content(payloads, "lnk_file_runned")
+    target_payload = find_content(payloads, "phishing_html_submit")
     target_content = find_content(mail_contents, "update")
     log(f"Payload type {target_payload.name} enabled.", "INFO")
     log(f"Message about {target_content.name} enabled.", "INFO")
@@ -50,4 +50,4 @@ if __name__ == "__main__":
     # Запуск массовой рассылки
     mass_email_dispatch(configs, target_content, target_payload, recipients)
 
-    #uvicorn.run(app, host="0.0.0.0", port=int(configs["PORT"]))
+    uvicorn.run(app, host="0.0.0.0", port=int(configs["PORT"]))
