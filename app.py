@@ -30,7 +30,7 @@ async def handle_event(event: str, request: Request):
 
 # Пример использования
 if __name__ == "__main__":
-    # Список получателей из файла
+    
     try:
         configs = load_conf(CONFIG_FILE)
         recipients = load_recipients_from_json(load_conf(RECIPIENTS_FILE))
@@ -40,7 +40,9 @@ if __name__ == "__main__":
         log(f"Error loading configuration: {e}", "ERROR")
 
     log(f"Configurations loaded.", "INFO")
-    target_payload = find_content(payloads, "executable_file_runned")
+    
+
+    target_payload = find_content(payloads, "lnk_file_runned")
     target_content = find_content(mail_contents, "update")
     log(f"Payload type {target_payload.name} enabled.", "INFO")
     log(f"Message about {target_content.name} enabled.", "INFO")
@@ -48,5 +50,4 @@ if __name__ == "__main__":
     # Запуск массовой рассылки
     mass_email_dispatch(configs, target_content, target_payload, recipients)
 
-    # Запуск FastAPI сервера
-    uvicorn.run(app, host="0.0.0.0", port=int(configs["PORT"]))
+    #uvicorn.run(app, host="0.0.0.0", port=int(configs["PORT"]))
